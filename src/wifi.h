@@ -5,10 +5,11 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 #include "debug.h"
 #include "led.h"
 
 void initServer();
 void notFound(AsyncWebServerRequest *request);
-void saveFileToSPIFFS();
 #endif

@@ -3,6 +3,8 @@
 IPAddress local_IP(192, 168, 1, 200);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
+IPAddress dns(1, 1, 1, 1);
+IPAddress dns2(1, 0, 0, 0);
 
 
 String eSSID = std::getenv("ESP_WIFI_SSID");
@@ -11,6 +13,37 @@ String ePass = std::getenv("ESP_WIFI_PASSWORD");
 AsyncWebServer server(80);
 const char* PARAM_MESSAGE = "message";
 
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
+
+
+void getDateTime()
+{
+    timeClient.begin();
+    timeClient.setTimeOffset(-10800); //GMT -3
+    int c = 0;
+    while(!timeClient.update())
+    {
+        delay(10);
+        
+        if(c%500 == 0)
+            debugln("Time sync failed, Retrying...");
+        c++;
+    }
+
+    int currentHour = timeClient.getHours();
+    debug("Time: ");
+    debug(currentHour);
+    debug(":");
+    //String t = "Time: "+currentHour;  
+
+    int currentMinute = timeClient.getMinutes();
+    debug(currentMinute);
+    debug(":");
+    
+    int currentSecond = timeClient.getSeconds();
+    debugln(currentSecond);
+}
 
 void initServer()
 {
@@ -22,7 +55,7 @@ void initServer()
     setLED(0, 255,255,0,1);
     WiFi.mode(WIFI_STA);
     WiFi.begin(eSSID.c_str(), ePass.c_str());
-    if (!WiFi.config(local_IP, gateway, subnet)) {
+    if (!WiFi.config(local_IP, gateway, subnet, dns, dns2)) {
         debugln("STA Failed to configure");
     }
     int c =0;
@@ -33,7 +66,8 @@ void initServer()
             debugln("Connecting to WiFi...");
         c++;
     }
-    debugln("");
+    getDateTime();
+    
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(SPIFFS, "/index.html", "text/html");
     });
@@ -44,8 +78,6 @@ void initServer()
         request->send(SPIFFS, "/script.js", "text/javascript");
     });
 
-
-    
     // Send a GET request to <IP>/data?message=<message> [template]
     server.on("/data", HTTP_GET, [] (AsyncWebServerRequest *request) {
         String message;

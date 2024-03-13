@@ -5,4 +5,5 @@
 #include "led.h"
 #include "wifi.h"
 #include "debug.h"
+#include "RTCMem.h"
 #endif

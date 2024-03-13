@@ -4,8 +4,11 @@
 void setup() {
     if(DEBUG)
         Serial.begin(115200);
-    
     debugln("\nESP started");
+    
+    initRTCMem();
+    debugln("RTCMem started");
+    
 
     initLED();
     debugln("LED started");
