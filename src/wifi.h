@@ -1,5 +1,4 @@
-#ifndef _WIFI_H
-#define _WIFI_H
+#pragma once
 
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
@@ -7,9 +6,10 @@
 #include <ArduinoJson.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include "debug.h"
+#include "common.h"
 #include "led.h"
-
+#include "RTCMem.h"
+#include "credentials.h"
 void initServer();
+void syncTime();
 void notFound(AsyncWebServerRequest *request);
-#endif

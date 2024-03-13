@@ -1,5 +1,10 @@
+#pragma once
+
 #include <RTCMemory.h>
-#include "debug.h"
+#include "common.h"
+#include "led.h"
+
+#define SLEEP_DURATION 6e6
 
 typedef struct 
 {
@@ -12,10 +17,14 @@ typedef struct
 typedef struct 
 {
     byte state;
-    byte hour;
+    byte mode;
+    byte hours;
     byte minutes;
     byte seconds;
-    RTCLED leds[85];
+    byte brightness;
+    float execTime;
+    char text[LED_COUNT];
+    RTCLED leds[LED_COUNT];
 }RTCData;
 
 
@@ -26,6 +35,32 @@ typedef struct
     
 }RTCTest;
 
+typedef enum
+{
+    STATE_ERROR,
+    STATE_WIFI_SYNC,
+    STATE_WIFI_OFF,
+    STATE_APP
+}state;
+
+typedef enum
+{
+    MODE_ERROR,
+    MODE_TIX,
+    MODE_CLOCK,
+    MODE_TEXT,
+    MODE_FREE_COLOR
+}mode;
 
 
 void initRTCMem();
+void setTime(byte hours, byte minutes, byte seconds);
+void setState(byte state);
+
+RTCData* getRTCData();
+byte getState();
+byte getHours();
+byte getMinutes();
+byte getSeconds();
+
+void checkStateChange(); 

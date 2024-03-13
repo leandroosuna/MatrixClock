@@ -6,17 +6,17 @@ void setup() {
         Serial.begin(115200);
     debugln("\nESP started");
     
-    initRTCMem();
-    debugln("RTCMem started");
-    
-
     initLED();
-    debugln("LED started");
-
+    
+    initRTCMem();
+    
     initServer();
-    debugln("Server started");
-}
 
+    cfgLED();
+
+    checkStateChange();    
+    
+}
 void loop() {
 
     rainbowTick();

@@ -1,9 +1,7 @@
-#ifndef _MAIN_H
-#define _MAIN_H
-
+#pragma once
 #include <Arduino.h>
 #include "led.h"
 #include "wifi.h"
-#include "debug.h"
+#include "common.h"
 #include "RTCMem.h"
-#endif
+

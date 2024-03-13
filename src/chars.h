@@ -1,3 +1,5 @@
+#pragma once
+
 bool emptyLetter[5][3] = {
     {0,0,0},
     {0,0,0},

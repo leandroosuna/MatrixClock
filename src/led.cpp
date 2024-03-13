@@ -4,30 +4,73 @@
 Adafruit_NeoPixel strip(LED_COUNT, NEO_PIN, NEO_RGB + NEO_KHZ800);
 
 LED leds[LED_COUNT];
+RTCData* rtcData;
 
 void initLED()
 {
-    for(int i = 0; i<LED_COUNT; i++)
-    {
-        leds[i].r = 0;
-        leds[i].g = 0;
-        leds[i].b = 0;   
-    }
+    strip.begin();
+    strip.show();
+    strip.setBrightness(5);
+    debugln("LED started");
+
+    // for(int i = 0; i<LED_COUNT; i++)
+    // {
+    //     leds[i].r = 0;
+    //     leds[i].g = 0;
+    //     leds[i].b = 0;   
+    // }
     //type
     //0: RGB, 1: GRB
     for(int i = 0; i<LED_COUNT; i++)
     {
         leds[i].type = 1;
     }
-        
-
-    strip.begin();
 
     
-    strip.show();
-    strip.setBrightness(5);
 }
-
+void LEDdataFromMem()
+{
+    for(int i = 0; i < LED_COUNT; i++)
+    {
+        leds[i].r = rtcData->leds[i].r;
+        leds[i].g = rtcData->leds[i].g;
+        leds[i].b = rtcData->leds[i].b;
+    }
+}
+void LEDdataToMem()
+{
+    for(int i = 0; i<LED_COUNT; i++)
+    {
+        rtcData->leds[i].r = leds[i].r;
+        rtcData->leds[i].g = leds[i].g;
+        rtcData->leds[i].b = leds[i].b;
+    }
+}
+void cfgLED()
+{
+    rtcData = getRTCData();
+    strip.setBrightness(rtcData->brightness);
+    
+    if(rtcData->mode == MODE_TIX)
+    {
+        debugln("[TIX mode]");
+        LEDdataFromMem();
+    }
+    else if(rtcData->mode == MODE_CLOCK)
+    {
+        debugln("[Clock mode]");
+        drawClock();
+    }
+    else if(rtcData->mode == MODE_TEXT)
+    {
+        debugln("[Text mode]");
+        drawTextFromMem();
+    }
+    else if(rtcData->mode == MODE_FREE_COLOR)
+    {
+        LEDdataFromMem();
+    }
+}
 void showLED()
 {
     strip.show();
@@ -151,6 +194,29 @@ void drawChar(char c, byte r, byte g, byte b, byte offset)
     showLED();
 }
 uint16_t rainbowHue = 0;
+
+
+void drawClock()
+{
+    debug("time ");
+    debug(rtcData->hours);
+    debug(":");
+    debug(rtcData->minutes);
+    debug(":");
+    debugln(rtcData->seconds);
+    
+}
+
+void drawTextFromMem()
+{
+    //save RGB for each char in leds[0],leds[1],leds[2]...
+    //"test"
+    //drawChar('t', led[0].rgb)
+    //drawChar('e', led[1].rgb)
+    //drawChar('s', led[2].rgb)
+    //drawChar('t', led[3].rgb)
+    // upto LED_COUNT chars
+}
 
 void rainbowTick() {
     byte r,g,b;

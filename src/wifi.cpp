@@ -7,9 +7,9 @@ IPAddress dns(1, 1, 1, 1);
 IPAddress dns2(1, 0, 0, 0);
 
 
-String eSSID = std::getenv("ESP_WIFI_SSID");
-String ePass = std::getenv("ESP_WIFI_PASSWORD");
-
+String eSSID; 
+String ePass; 
+String bssid;
 AsyncWebServer server(80);
 const char* PARAM_MESSAGE = "message";
 
@@ -17,42 +17,33 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 
-void getDateTime()
-{
-    timeClient.begin();
-    timeClient.setTimeOffset(-10800); //GMT -3
-    int c = 0;
-    while(!timeClient.update())
-    {
-        delay(10);
-        
-        if(c%500 == 0)
-            debugln("Time sync failed, Retrying...");
-        c++;
-    }
 
-    int currentHour = timeClient.getHours();
-    debug("Time: ");
-    debug(currentHour);
-    debug(":");
-    //String t = "Time: "+currentHour;  
-
-    int currentMinute = timeClient.getMinutes();
-    debug(currentMinute);
-    debug(":");
-    
-    int currentSecond = timeClient.getSeconds();
-    debugln(currentSecond);
-}
 
 void initServer()
 {
+    // eSSID = std::getenv("ESP_WIFI_SSID");
+    // ePass = std::getenv("ESP_WIFI_PASSWORD");
+    eSSID = WIFI_SSID;
+    ePass = WIFI_PASSWORD;
+    
+    // bssid = std::getenv("BSSID");
+
+    debug("SSID");
+    debugln(eSSID);
+    debug("pass");
+    debugln(ePass);
+    
+    if(getState() == STATE_WIFI_OFF)
+    {
+        WiFi.mode(WIFI_OFF);
+        return;
+    }
 
     if(!SPIFFS.begin()){
         debugln("An Error has occurred while mounting SPIFFS");
         return;
     }
-    setLED(0, 255,255,0,1);
+    
     WiFi.mode(WIFI_STA);
     WiFi.begin(eSSID.c_str(), ePass.c_str());
     if (!WiFi.config(local_IP, gateway, subnet, dns, dns2)) {
@@ -62,12 +53,17 @@ void initServer()
     while (WiFi.status() != WL_CONNECTED) {
         delay(10);
         
-        if(c%500 == 0)
+        if(c%500 == 0){
             debugln("Connecting to WiFi...");
+        }
         c++;
     }
-    getDateTime();
+    syncTime();
     
+    //we dont need 
+    if(getState() == STATE_WIFI_SYNC)
+        return;
+
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(SPIFFS, "/index.html", "text/html");
     });
@@ -167,9 +163,40 @@ void initServer()
     
     server.onNotFound(notFound);
     server.begin();
+    debugln("Server started");
+    
 }
 
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
 
+void syncTime()
+{
+    timeClient.begin();
+    timeClient.setTimeOffset(-10800); //GMT -3
+    int c = 0;
+    while(!timeClient.update())
+    {
+        delay(10);
+        
+        if(c%500 == 0)
+            debugln("Time sync failed, Retrying...");
+        c++;
+    }
+
+    int currentHour = timeClient.getHours();
+    debug("Time: ");
+    debug(currentHour);
+    debug(":");
+    //String t = "Time: "+currentHour;  
+
+    int currentMinute = timeClient.getMinutes();
+    debug(currentMinute);
+    debug(":");
+    
+    int currentSecond = timeClient.getSeconds();
+    debugln(currentSecond);
+
+    setTime(currentHour, currentMinute, currentSecond);
+}

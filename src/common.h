@@ -1,6 +1,4 @@
-#ifndef _DEBUG_H
-#define _DEBUG_H
-
+#pragma once
 #define DEBUG true
 
 #if DEBUG
@@ -11,4 +9,4 @@
     #define debugln(x)
 #endif
 
-#endif
+#define LED_COUNT 85
